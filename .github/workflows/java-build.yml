@@ -1,0 +1,43 @@
+name: Conditional Workflow Challenge
+
+on:
+  push:
+    branches:
+      - release
+      - main
+      - develop
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  conditional-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Objective 1: Run step only on 'release' branch
+      - name: Run only on release branch
+        if: github.ref == 'refs/heads/release'
+        run: |
+          echo "🎯 Running exclusive step for 'release' branch."
+
+      # Objective 2: Run step exclusively during pull request event
+      - name: Run during Pull Request event
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "🔍 PR Title: ${{ github.event.pull_request.title }}"
+          echo "👤 PR Author: ${{ github.event.pull_request.user.login }}"
+
+      # Objective 3: Run if commit message includes '[run-tests]'
+      - name: Run Tests if Commit Message Includes '[run-tests]'
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[run-tests]')
+        run: |
+          echo "✅ Executing tests as requested..."
+
+      # Objective 4: Run only if workflow triggered by repository owner
+      - name: Run only if triggered by repository owner
+        if: github.actor == github.repository_owner
+        run: |
+          echo "🔐 Workflow triggered by repository owner: ${{ github.actor }}."
